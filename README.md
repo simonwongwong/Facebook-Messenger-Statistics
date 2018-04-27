@@ -9,4 +9,6 @@ Run the [extraction script](extract.py) to pull out all the HTML files
 
 Open the Jupyter notebook and run the code to generate your report and interact with it:
 
+Example report [here](report/facebook-messenger-stats.md)
+
 ![report](screenshot.png)
