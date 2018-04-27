@@ -10,6 +10,8 @@ class Chat:
 		self.chatName = name
 		self.filename = htmlfilename
 		self.imageCount = 0
+		self.stickerCount = 0
+		self.videoCount = 0
 	
 	def isGroupChat(self):
 		return self.groupChat
@@ -56,3 +58,11 @@ class Chat:
 	def incrementImageCount(self):
 		self.imageCount += 1
 
+	def incrementStickerCount(self):
+		self.stickerCount += 1
+
+	def incrementVideoCount(self):
+		self.videoCount += 1
+	
+	def getNumStickers(self):
+		return self.stickerCount

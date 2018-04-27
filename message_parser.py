@@ -95,8 +95,12 @@ def parse(chats_to_parse = PARSE_ALL):
 
 				time = datetime.strptime(messageData[2], "%d %B %Y %H:%M")
 				messages.append({'sender':messageData[0],'time':time, 'message':html.unescape(messageData[1])}) #convert HTML symbols
+
 				if messageData[2] == 'some_image_was_here' and "messages/stickers" not in rawMessage:
 					newChat.incrementImageCount()
+
+				if "messages/stickers" in rawMessage:
+					newChat.incrementStickerCount()					
 			except:
 				#sometimes deleted accounts mess up the array because "sender" is an empty string 
 				#or message is empty because it doesn't show up on the exported data (e.g. waves, events)
