@@ -3,19 +3,29 @@ import pandas as pd
 from chats import Chat
 from datetime import datetime
 
-def parseAll():
+PARSE_ALL = "PARSE_ALL_FILES"
+
+
+#parses HTML data and returns a list with Chat objects. Parse all HTML files by default
+def parse(chats_to_parse = PARSE_ALL):
+
+	#parse all files
+	if chats_to_parse == PARSE_ALL:
+		filesToParse = os.listdir()
+	else:
+		filesToParse = chats_to_parse.split(", ")
+		
+
 	chatNameStart = '<title>'
 	chatNameEnd = "</title>" 
-	messageSplit = '</td></tr></tbody></table></div><div class="_3-94 _2lem">'
 	messageStart = '<div class="_3-96 _2pio _2lek _2lel">'
 	participantStart = '<div class="_1s7d">'
-	allFiles = os.listdir()
 	htmlFiles = []
 	chats = {}
 	brokenFiles = []
 
 	#get html files from folder
-	for file in allFiles:
+	for file in filesToParse:
 		if file.endswith("html"):
 			htmlFiles.append(file)
 
@@ -36,7 +46,7 @@ def parseAll():
 		newChat.setRawChat(rawChat)
 
 		try:
-			chatBeginIndex = rawChat.index(messageSplit)
+			chatBeginIndex = rawChat.index(messageStart)
 		except ValueError:
 			rawChat = "no messages with " + chatName
 			print("error:" + rawChat)
@@ -54,38 +64,54 @@ def parseAll():
 
 
 		#process chat data
-		chatBodyElements = rawChat[chatBeginIndex:].split(messageSplit)
-		chatBodyElements = chatBodyElements[1:] #removes first empty string
+		chatBodyElements = rawChat[chatBeginIndex:].split(messageStart)
+		# chatBodyElements = chatBodyElements[1:] #removes first empty string
 		del chatBodyElements[-1]
 		messages = []
 		for rawMessage in chatBodyElements:
 			#remove HTML tags and separate message data
 			#add placeholders for media
 			removedImg = re.sub('<img (.*)/>', 'some_image_was_here', rawMessage)
+			stringCleanup = re.sub('<li>(.*)</li>', '', removedImg)
+			stringCleanup = re.sub('<br />', '', stringCleanup)
+
 			
 
-			removedHTML = re.sub('<[^<]+?>', 'nonsense_to_remove', removedImg).split('nonsense_to_remove')
+			removedHTML = re.sub('<[^<]+?>', 'nonsense_to_remove', stringCleanup).split('nonsense_to_remove')
+			
 			messageData = list((filter(None, removedHTML))) #[date, sender, message]
-			# messages.append(str(messageData) +"@@ raw: " +str(rawMessage) +"@@ rawer: " + str(removedHTML))
+
+			if len(messageData) == 0:
+				# print(chatName, "no messages")
+				# input()
+				continue
+
 			try:
-				time = datetime.strptime(messageData[0], "%d %B %Y %H:%M")
-				messages.append({'sender':messageData[1],'time':time, 'message':html.unescape(messageData[2])}) #convert HTML symbols
+				#handle if message and pic were sent in same message
+				if messageData[2] == 'some_image_was_here' or "Download file" in messageData[2]:
+					messageData[1] = messageData[1] + messageData[2]
+					messageData[2] = messageData[3]
+					newChat.incrementImageCount()		
+
+				time = datetime.strptime(messageData[2], "%d %B %Y %H:%M")
+				messages.append({'sender':messageData[0],'time':time, 'message':html.unescape(messageData[1])}) #convert HTML symbols
 				if messageData[2] == 'some_image_was_here' and "messages/stickers" not in rawMessage:
 					newChat.incrementImageCount()
 			except:
-				#sometimes deleted accounts mess up the array because "sender" is an empty string
+				#sometimes deleted accounts mess up the array because "sender" is an empty string 
+				#or message is empty because it doesn't show up on the exported data (e.g. waves, events)
+
+				brokenFiles.append(file)
+				# print(file, messageData)
+				# input()
 				pass
-	# 
-	# # 			brokenFiles.append(file)
 				
 		messages.reverse() #set for chronological order
 		newChat.setMessages(messages)
-
-
 	return chats
 
 if __name__ == "__main__":
 	chatDict = parseAll()
-	# s = chatDict['Jay Shi']
+	
 
 

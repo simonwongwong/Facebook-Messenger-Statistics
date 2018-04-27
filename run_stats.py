@@ -3,8 +3,18 @@ from chats import Chat
 import pandas as pd
 
 
+def sortDict(unsorted, topNum):
+	sorted_dict = dict(sorted(unsorted.items(), key=operator.itemgetter(1), reverse=True))
+	top_keys = list(sorted_dict.keys())[:topNum]
+	return [sorted_dict, top_keys]
+
+def exportDataFrame(top_list, filename):
+	top_frame = pd.DataFrame(top_list)
+	top_frame.to_csv('.\\csv files\\' + filename)	
+
+
 def getMostMessaged(chat_dict, topNum):
-	sizeDict = {}
+	messageDict = {}
 	chatNames = list(chat_dict.keys())
 	global totalMsg
 	totalMsg = 0
@@ -12,55 +22,53 @@ def getMostMessaged(chat_dict, topNum):
 	for chat in chatNames:
 		num = chat_dict[chat].getNumMessages()
 		totalMsg += num
-		sizeDict[num] = chat
-	sizes = list(sizeDict.keys())
-	sizes.sort(key = int, reverse=True)
+		messageDict[chat] = num
 
-	top = sizes[:topNum]
+	
+	sorted_dict, top_keys = sortDict(messageDict, topNum)
 
-	mostMessageList = []
+	mostMessagedList = []
 
-	for i in range(0, len(top)):
+	for i in range(0, len(top_keys)):
 		rank = i+1
-		chat = html.unescape(sizeDict[top[i]])
-		numMsg = top[i]
-		mostMessageList.append({'rank':rank, 'chat':chat, 'number of messages': top[i], '% of total messages': top[i]*100/totalMsg})
+		chat = html.unescape(top_keys[i])
+		numMsg = sorted_dict[chat]
+		mostMessagedList.append({'rank':rank, 'chat':chat, 'number of messages': numMsg, '% of total messages': numMsg*100/totalMsg})
 	
-	mostMessagedFrame = pd.DataFrame(mostMessageList)
-	mostMessagedFrame.to_csv('.\\csv files\\most_messaged.csv')
-
-	
+	exportDataFrame(mostMessagedList, 'most_messaged.csv')
 
 
 def getMostImages(chat_dict, topNum):
-	sizeDict = {}
+	images_dict = {}
 	chatNames = list(chat_dict.keys())
 	totalImages = 0
 
 	for chat in chatNames:
 		num = chat_dict[chat].getNumImages()
 		totalImages += num
-		sizeDict[num] = chat
-	sizes = list(sizeDict.keys())
-	sizes.sort(key = int, reverse=True)
-
-	top = sizes[:topNum]
-	mostImageList = []
-	for i in range(0, len(top)):
-		chat = html.unescape(sizeDict[top[i]])
-		rank = i+1
-		mostImageList.append({'rank':rank, 'chat':chat, 'number of images': top[i], '% of total images':top[i]*100/totalImages})
+		images_dict[chat] = num
 	
-	mostImagesFrame = pd.DataFrame(mostImageList)
-	mostImagesFrame.to_csv('.\\csv files\\most_images.csv')
+	sorted_dict, top_keys = sortDict(images_dict, topNum)
 
-def mostUsedWords(chat_dict, topNum, chars = 1):
+	mostImageList = []
+
+	for i in range(0, len(top_keys)):
+		chat = html.unescape(top_keys[i])
+		rank = i+1
+		numImages = sorted_dict[chat]
+		mostImageList.append({'rank':rank, 'chat':chat, 'number of images': numImages, '% of total images':numImages*100/totalImages})
+	
+	exportDataFrame(mostImageList, 'most_images_exchanged.csv')
+
+def mostUsedWords(chat_dict, topNum, sender, chars = 1):
 
 	word_dict = {}
 
 	for chat in chat_dict:
 		chatObject = chat_dict[chat]
 		for line in chatObject.messages:
+			if line['sender'] != sender:
+				continue
 			words = line['message'].split(" ")
 			words = [x.lower() for x in words]
 			for word in words:
@@ -73,20 +81,18 @@ def mostUsedWords(chat_dict, topNum, chars = 1):
 	if "someimagewashere" in word_dict:
 		del word_dict["someimagewashere"]
 
-	sorted_word_tuple = sorted(word_dict.items(), key=operator.itemgetter(1), reverse=True)
-	sorted_dict = dict(sorted_word_tuple)
+	sorted_dict, top_keys = sortDict(word_dict, topNum)
 
 	mostWordsList = []
 
-	for i in range(0, topNum):
-		keys = list(sorted_dict.keys())
+	for i in range(0, len(top_keys)):
 		rank = i+1
-		num = sorted_dict[keys[i]]
+		word = top_keys[i]
+		num = sorted_dict[word]
 
-		mostWordsList.append({'rank':rank, 'word':keys[i], 'number of uses':num, '% of total messages':num*100/totalMsg})
+		mostWordsList.append({'rank':rank, 'word':word, 'number of uses':num, '% of total messages':num*100/totalMsg})
 
-	mostWordsFrame = pd.DataFrame(mostWordsList)
-	mostWordsFrame.to_csv('.\\csv files\\most_used_words.csv')
+	exportDataFrame(mostWordsList, 'most_used_words.csv')
 
 
 def mostActiveTime(chat_dict, topNum, typeOfTime):
@@ -119,38 +125,35 @@ def mostActiveTime(chat_dict, topNum, typeOfTime):
 			else:
 				timeDict[time] = 1
 
-	sorted_time_tuple = sorted(timeDict.items(), key=operator.itemgetter(1), reverse=True)
-	sorted_dict = dict(sorted_time_tuple)
+	if topNum == 'max':
+		topNum = len(timeDict)
+
+	sorted_dict, top_keys = sortDict(timeDict, topNum)
 
 	mostActiveTimeList = []
 	
-	if topNum == 'max':
-		topNum = len(sorted_dict)
 
-	for i in range(0, topNum):
-		keys = list(sorted_dict.keys())
-		rank = i+1
-		num = sorted_dict[keys[i]]
+	for i in range(0, len(top_keys)):
 		
-		mostActiveTimeList.append({'rank':rank, typeOfTime:keys[i], 'number of messages':num, '% of total messages':num*100/totalMsg})
+		time_value = top_keys[i]
+		rank = i+1
+		num = sorted_dict[time_value]
+		
+		mostActiveTimeList.append({'rank':rank, typeOfTime:time_value, 'number of messages':num, '% of total messages':num*100/totalMsg})
 
-	activeTimeFrame = pd.DataFrame(mostActiveTimeList)
 	filename = 'most_active_' + typeOfTime +'.csv'
-	activeTimeFrame.to_csv('.\\csv files\\'+filename)
-
-def exportCSV(array_of_dict):
-	pass
+	exportDataFrame(mostActiveTimeList, filename)
 
 
 if not os.path.exists('.\\csv files'):
 	os.mkdir('.\\csv files\\')
 
-chat_dict = message_parser.parseAll()
+chat_dict = message_parser.parse()
 getMostMessaged(chat_dict, 20)
-# getMostImages(chat_dict, 20)
-mostUsedWords(chat_dict, 10, 10)
+getMostImages(chat_dict, 20)
+mostUsedWords(chat_dict, 10, 'Simon Wong', 5)
 mostActiveTime(chat_dict, 'max', "time")
-mostActiveTime(chat_dict, 24, "hour")
+mostActiveTime(chat_dict, 'max', "hour")
 mostActiveTime(chat_dict, 60, "minute")
 mostActiveTime(chat_dict, 12, "month")
 mostActiveTime(chat_dict,'max', "year")
