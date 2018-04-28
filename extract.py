@@ -1,17 +1,16 @@
 import os, shutil
 
+archive = ".\\archive\\"
+
 files = os.listdir()
 
 stickerIndex = files.index("stickers_used")
 del files[stickerIndex]
 
-os.remove("messages.html")
 shutil.move("stickers_used", archive)
 
 files = [x for x in files if not ".py" in x]
-files = [x for x in files if not ".html" in x]
 
-archive = "..\\archive\\"
 
 if not os.path.exists(archive):
 	os.mkdir(archive)
@@ -19,7 +18,7 @@ if not os.path.exists(archive):
 for file in files:
 	os.chdir(file)
 	try:
-		os.rename("message.html", "..\\"+file+".html")
+		os.rename("message.json", "..\\"+file+".json")
 	except:
 		print("skipped", file)
 	os.chdir("..")

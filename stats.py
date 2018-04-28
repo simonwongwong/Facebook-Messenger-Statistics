@@ -1,8 +1,11 @@
-import os, message_parser, operator, html
+import os, JSON_message_parser, operator
 import matplotlib.pyplot as plt
 from chats import Chat
 import pandas as pd
 
+def setTotals(total_dict):
+	global totals
+	totals = total_dict
 
 def sortDict(unsorted, topNum):
 	sorted_dict = dict(sorted(unsorted.items(), key=operator.itemgetter(1), reverse=True))
@@ -14,81 +17,55 @@ def exportDataFrame(top_list, filename):
 	top_frame.to_csv('.\\csv files\\' + filename)	
 	return top_frame
 
+def averageMessageLength():
+	pass
+
+def inMostGroupChats():
+	pass
 
 def getMostMessaged(chat_dict, topNum):
-	messageDict = {}
+	message_dict = {}
 	chatNames = list(chat_dict.keys())
-	allMsg = 0
 
 	for chat in chatNames:
 		num = chat_dict[chat].getNumMessages()
-		allMsg += num
-		messageDict[chat] = num
+		message_dict[chat] = num
 
 	
-	sorted_dict, top_keys = sortDict(messageDict, topNum)
+	sorted_dict, top_keys = sortDict(message_dict, topNum)
 
-	mostMessagedList = []
+	most_messaged = []
 
 	for i in range(0, len(top_keys)):
 		rank = i+1
-		chat = html.unescape(top_keys[i])
+		chat = top_keys[i]
 		numMsg = sorted_dict[chat]
-		mostMessagedList.append({'rank':rank, 'chat':chat, 'number of messages': numMsg, '% of total messages': numMsg*100/allMsg})
+		most_messaged.append({'rank':rank, 'chat':chat, 'number of messages': numMsg, '% of total messages': numMsg*100/totals['total_messages']})
 	
-	return exportDataFrame(mostMessagedList, 'most_messaged.csv')
+	return exportDataFrame(most_messaged, 'most_messaged.csv')
 
-
-def getMostImages(chat_dict, topNum):
-	images_dict = {}
-	chatNames = list(chat_dict.keys())
-	allImages = 0
-
-
-	for chat in chatNames:
-		num = chat_dict[chat].getNumImages()
-		allImages += num
-		images_dict[chat] = num
-	
-	sorted_dict, top_keys = sortDict(images_dict, topNum)
-
-	mostImageList = []
-
-	for i in range(0, len(top_keys)):
-		chat = html.unescape(top_keys[i])
-		rank = i+1
-		numImages = sorted_dict[chat]
-		mostImageList.append({'rank':rank, 'chat':chat, 'number of images': numImages, '% of total images':numImages*100/allImages})
-	
-	return exportDataFrame(mostImageList, 'most_images_exchanged.csv')
 
 def getMostUsedWords(chat_dict, topNum, sender, chars = 1):
-	totalMessages = 0
 	word_dict = {}
 
 	for chat in chat_dict:
-		chatObject = chat_dict[chat]
-		for line in chatObject.messages:
-			if line['sender'] != sender and sender != 'ANY_SENDER':
+		chat_object = chat_dict[chat]
+
+		for message_data in chat_object.getMessages():
+			if message_data['sender'] != sender and sender != 'ANY_SENDER':
 				continue
 
-			totalMessages += 1
-
-			words = line['message'].split(" ")
+			words = message_data['message'].split(" ")
 			words = [x.lower() for x in words]
+
 			for word in words:
-				word = ''.join(e for e in word if e.isalnum())
+				word = ''.join(letter for letter in word if letter.isalnum())
+
 				if word in word_dict:
 					word_dict[word] += 1
+
 				elif len(word) >= chars and "http" not in word:
 					word_dict[word] = 1
-
-
-	if "someimagewashere" in word_dict:
-		del word_dict["someimagewashere"]
-
-	if "videosomeimagewashere" in word_dict:
-		del word_dict["videosomeimagewashere"]
 
 
 	sorted_dict, top_keys = sortDict(word_dict, topNum)
@@ -100,20 +77,19 @@ def getMostUsedWords(chat_dict, topNum, sender, chars = 1):
 		word = top_keys[i]
 		num = sorted_dict[word]
 
-		mostWordsList.append({'rank':rank, 'word':word, 'number of uses':num, '% of total messages':num*100/totalMessages})
+		mostWordsList.append({'rank':rank, 'word':word, 'number of uses':num, '% of total messages':num*100/totals['total_messages']})
 
 	return exportDataFrame(mostWordsList, 'most_used_words.csv')
 
 
 def getMostActiveTime(chat_dict, topNum, typeOfTime):
-	timeDict = {}
-	totalMessages = 0
+	time_dict = {}
 
 	for chat in chat_dict:
-		chatObject = chat_dict[chat]
+		chat_object = chat_dict[chat]
 
-		for message in chatObject.messages:
-			totalMessages += 1
+		for message in chat_object.getMessages():
+
 			datetime = message['time']
 
 			if typeOfTime == "hour":
@@ -132,17 +108,17 @@ def getMostActiveTime(chat_dict, topNum, typeOfTime):
 				print("invalid type of time")
 				return
 
-			if time in timeDict:
-				timeDict[time] += 1
+			if time in time_dict:
+				time_dict[time] += 1
 			else:
-				timeDict[time] = 1
+				time_dict[time] = 1
 
 	if topNum == 'max':
-		topNum = len(timeDict)
+		topNum = len(time_dict)
 
-	sorted_dict, top_keys = sortDict(timeDict, topNum)
+	sorted_dict, top_keys = sortDict(time_dict, topNum)
 
-	mostActiveTimeList = []
+	most_active_time = []
 	
 
 	for i in range(0, len(top_keys)):
@@ -151,10 +127,10 @@ def getMostActiveTime(chat_dict, topNum, typeOfTime):
 		rank = i+1
 		num = sorted_dict[time_value]
 		
-		mostActiveTimeList.append({'rank':rank, typeOfTime:time_value, 'number of messages':num, '% of total messages':num*100/totalMessages})
+		most_active_time.append({'rank':rank, typeOfTime:time_value, 'number of messages':num, '% of total messages':num*100/totals['total_messages']})
 
 	filename = 'most_active_' + typeOfTime +'.csv'
-	return exportDataFrame(mostActiveTimeList, filename)
+	return exportDataFrame(most_active_time, filename)
 
 def plot(x,y, data, plot_title):
 	plt.figure()
@@ -171,69 +147,52 @@ def plot(x,y, data, plot_title):
 	plt.show()
 
 
-def typesOfMessages(chat_dict,sender):
-	total = {}
-	total['Messages'] = 0
-	total['Stickers'] = 0
+def typesOfMessages(chat_dict, chat_to_analyze='ANY_CHAT'):
+	if chat_to_analyze == 'ANY_CHAT':
+		chats = list(chat_dict.keys())
+	else:
+		chats = [chat_to_analyze]
 
-	word_dict = {}
+	total = {'messages':0,'stickers':0,'photos':0,'videos':0}
+	percent = {'stickers':0,'photos':0,'videos':0}
 
-	for chat in chat_dict:
-		chatObject = chat_dict[chat]
-		for line in chatObject.messages:
-			if line['sender'] != sender and sender != 'ANY_SENDER':
-				continue
 
-			total['Messages'] += 1
-
-			words = line['message'].split(" ")
-			words = [x.lower() for x in words]
-			for word in words:
-				word = ''.join(e for e in word if e.isalnum())
-				if word in word_dict:
-					word_dict[word] += 1
-				else:
-					word_dict[word] = 1
-
-		total['Stickers'] += chat_dict[chat].getNumStickers()
-
-	if "someimagewashere" in word_dict:
-		total['Images'] = word_dict['someimagewashere']
-		del word_dict["someimagewashere"]
-
-	if "videosomeimagewashere" in word_dict:
-		total['Vids'] = word_dict["videosomeimagewashere"]
-		del word_dict["videosomeimagewashere"]
-
-	total['Text'] = total['Messages'] - total['Stickers'] - total['Images'] - total['Vids']
+	for chat in chats:
+		total['messages'] += chat_dict[chat].getNumMessages()
+		total['stickers'] += chat_dict[chat].getNumStickers()
+		total['photos'] += chat_dict[chat].getNumPhotos()
+		total['videos'] += chat_dict[chat].getNumVideos() 
+	
+	total['text'] = total['messages'] - total['stickers'] - total['photos'] - total['videos']
 
 	type_list = []
 
 	for type_msg in list(total.keys()):
-		if type_msg != 'Messages':
+		if type_msg != 'messages':
 			num = total[type_msg]
-			type_list.append({'type of message':type_msg, 'number of messages':num, '% of total messages':num*100/total['Messages']})
+			percent[type_msg] = num*100/total['messages']
+			type_list.append({'type of message':type_msg, 'number of messages':num, '% of total messages':percent[type_msg]})
 
 	df_type_msg = exportDataFrame(type_list, 'type_of_message.csv')
-	df_type_msg
+	
 
 
 	x = []
-	x.append(total['Text'] / total['Messages'])
-	x.append(total['Images'] / total['Messages'])
-	x.append(total['Vids'] / total['Messages'])
-	x.append(total['Stickers'] / total['Messages'])
+	x.append(percent['text'])
+	x.append(percent['photos'])
+	x.append(percent['videos'])
+	x.append(percent['stickers'])
 
 	plt.figure()
 	plt.title("Types of Messages Sent")
 
 	patches, texts = plt.pie(x, startangle=90)
-	plt.legend(patches, ['Text', 'Image', 'Video', 'Sticker'], loc="best")
+	plt.legend(patches, ['Text', 'Photo', 'Video', 'Sticker'], loc="best")
 	plt.tight_layout()
 	plt.axis('equal')
 	plt.show()
 
-
+	return df_type_msg
 
 
 
@@ -242,7 +201,7 @@ def typesOfMessages(chat_dict,sender):
 if __name__ == "__main__":
 	if not os.path.exists('.\\csv files'):
 		os.mkdir('.\\csv files\\')
-	chat_dict = message_parser.parse()
+	chat_dict, totals = message_parser.parse()
 
 	# getMostMessaged(chat_dict, 20)
 

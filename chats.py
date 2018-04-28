@@ -6,10 +6,10 @@ class Chat:
 	groupChat = False
 	csvFileLocation = ".\\csv files\\message_file\\"
 
-	def __init__(self, name, htmlfilename):
+	def __init__(self, name, filename):
 		self.chatName = name
-		self.filename = htmlfilename
-		self.imageCount = 0
+		self.filename = filename
+		self.photoCount = 0
 		self.stickerCount = 0
 		self.videoCount = 0
 	
@@ -18,9 +18,6 @@ class Chat:
 
 	def setGroupChat(self):
 		self.groupChat = True
-
-	def setRawChat(self, raw):
-		self.rawChat = raw
 
 	def setParticipants(self, chatParticipants):
 		self.participants = chatParticipants
@@ -52,11 +49,11 @@ class Chat:
 
 		return(self.numMessages)
 
-	def getNumImages(self):
-		return self.imageCount
+	def getNumPhotos(self):
+		return self.photoCount
 	
-	def incrementImageCount(self):
-		self.imageCount += 1
+	def incrementPhotoCount(self):
+		self.photoCount += 1
 
 	def incrementStickerCount(self):
 		self.stickerCount += 1
@@ -66,3 +63,6 @@ class Chat:
 	
 	def getNumStickers(self):
 		return self.stickerCount
+
+	def getNumVideos(self):
+		return self.videoCount
