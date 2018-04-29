@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from chats import Chat
 import pandas as pd
 
+fake_names = ['Kanye West', "King T'Challa", 'Tim Horton', 'Elon Musk', 'Ira Glass', 'Simon Wong', 'Mark Zuckerberg', 'Queen Elizabeth', 'Beyonce', 'Spongebob Squarepants']
+
 def setTotals(total_dict):
 	global totals
 	totals = total_dict
@@ -17,11 +19,85 @@ def exportDataFrame(top_list, filename):
 	top_frame.to_csv('.\\csv files\\' + filename)	
 	return top_frame
 
-def averageMessageLength():
-	pass
+def getAverageMessageLength(chat_dict, topNum, chats_to_analyze, typeLen='words'):
+	message_length = {}
+	average_length = {}
 
-def inMostGroupChats():
-	pass
+	for chat_name in chats_to_analyze:
+		chat = chat_dict[chat_name]
+
+		for message_data in chat.getMessages():
+			sender = message_data['sender']
+
+			if sender == 'missing name (account deleted)':
+				continue
+
+			if typeLen == 'words':
+				words = message_data['message'].split(" ")
+				length = len(words)
+			elif typeLen == 'chars':
+				length = len(message_data['message'])
+
+			if sender in list(message_length.keys()):
+				message_length[sender]['total_len'] += length
+				message_length[sender]['num_msg'] += 1
+			else:
+				message_length[sender] = {}
+				message_length[sender]['total_len'] = length
+				message_length[sender]['num_msg'] = 1
+
+	for sender in message_length:
+		data = message_length[sender]
+		average_length[sender] = data['total_len']/data['num_msg']
+
+	sorted_dict, top_keys = sortDict(average_length, topNum)
+
+	average_message_length = []
+
+	for i in range(0, len(top_keys)):
+		rank = i+1
+		sender = top_keys[i]
+		length = sorted_dict[sender]
+		average_message_length.append({'rank':rank, 'sender':sender, 'average message length': length})
+	
+	return exportDataFrame(average_message_length, 'average_message_length.csv')
+
+
+def inMostGroupChats(chat_dict, topNum):
+	person = {}
+	numGroupChats = 0
+
+	for chat_name in chat_dict:
+		chat = chat_dict[chat_name]
+		if chat.isGroupChat():
+			participants = chat.getParticipants()
+			numGroupChats += 1
+		else:
+			continue
+
+		for participant in participants:
+
+			if participants == "unable to find participants":
+				break
+
+			if participant in list(person.keys()):
+				person[participant] += 1
+			else:
+				person[participant] = 1
+
+	sorted_dict, top_keys = sortDict(person, topNum)
+	most_common_participant = []
+
+	for i in range(0, len(top_keys)):
+		rank = i+1
+		participant = top_keys[i]
+		numChats = sorted_dict[participant]
+		most_common_participant.append({'rank':rank, 'participant':participant, 'number of group chats': numChats, '% of total chats': numChats*100/numGroupChats})
+	
+	return exportDataFrame(most_common_participant, 'most_common_participant.csv')
+
+
+	
 
 def getMostMessaged(chat_dict, topNum):
 	message_dict = {}
@@ -201,7 +277,7 @@ def typesOfMessages(chat_dict, chat_to_analyze='ANY_CHAT'):
 if __name__ == "__main__":
 	if not os.path.exists('.\\csv files'):
 		os.mkdir('.\\csv files\\')
-	chat_dict, totals = message_parser.parse()
+	chat_dict, totals = JSON_message_parser.parse()
 
 	# getMostMessaged(chat_dict, 20)
 

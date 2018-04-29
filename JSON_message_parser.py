@@ -6,8 +6,7 @@ from dateutil import tz
 import time as t
 
 PARSE_ALL = "PARSE_ALL_FILES"
-localtime = tz.tzlocal()
-utc = tz.gettz('UTC')
+
 
 
 #parses JSON data and returns a list with Chat objects. Parse all JSON files by default
@@ -44,6 +43,7 @@ def parse(chats_to_parse = PARSE_ALL):
 
 		try:
 			newChat.setParticipants(chat_data['participants'])
+			newChat.setGroupChat()
 		except:
 			newChat.setParticipants('unable to find participants')
 
@@ -75,10 +75,8 @@ def parse(chats_to_parse = PARSE_ALL):
 
 
 			#retrieve and convert time from UTC to local
-			# UTC_time = datetime.utcfromtimestamp(message['timestamp']).replace(tzinfo=utc)
-			# time = UTC_time.astimezone(localtime)
 			time = datetime.fromtimestamp(message['timestamp'])
-			
+
 			messages.append({'sender':sender, 'time':time,'message':content})
 
 		messages.reverse()
