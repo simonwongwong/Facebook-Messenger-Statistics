@@ -13,16 +13,15 @@ Download your Facebook Messenger data [in your setings page](https://www.faceboo
 
 ![facebook settings](pictures/download.png)
 
-Make sure to download in JSON format
+Make sure to download in JSON format. Media quality can be set to low for a faster download
 
 ![download](pictures/download_page.PNG)
 
-Drop the Python files and Jupyter notebook into the 'messages' folder 
+Drop the Python files and Jupyter notebook into the 'messages' folder and run [the extraction script](extract.py) to pull the JSON files from the individual folders
+
+Then drop the rest of the Python files into the folder with the extracted JSON files
 
 ![folder](pictures/folder.png)
-
-
-Run the [extraction script](extract.py) to pull out all the JSON files and give them unique names
 
 Open the Jupyter notebook and run the code to generate your report and interact with it:
 
