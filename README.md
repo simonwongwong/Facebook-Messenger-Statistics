@@ -9,6 +9,8 @@ Example report [here](report/facebook-messenger-stats.md)
 
 # How to use
 
+See [requirements](#requirements) for required Python libraries
+
 Download your Facebook Messenger data [in your setings page](https://www.facebook.com/settings)
 
 ![facebook settings](pictures/download.png)
@@ -27,3 +29,8 @@ Open the Jupyter notebook and run the code to generate your report and interact 
 
 ![run](pictures/run.png)
 
+# Requirements
+* matplotlib
+* numpy
+* pandas
+* jupyter
