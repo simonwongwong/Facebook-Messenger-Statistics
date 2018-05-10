@@ -3,7 +3,7 @@ Discover fun stats about your Facebook Messenger usage such as: most used words,
 
 For **instructions** [scroll down](#how-to-use)
 
-Example report [here](report/facebook-messenger-stats.md)
+Example report [here](http://simonwong.io/facebook-messenger-stats.html)
 
 ![report](pictures/screenshot.png)
 
