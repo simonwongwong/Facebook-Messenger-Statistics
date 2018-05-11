@@ -1,22 +1,28 @@
 import os, shutil
 
-media = ".\\media\\"
+archive = ".\\archive\\"
 
 files = os.listdir()
 
-files = [x for x in files if os.path.isdir(x)]
+try:
+	stickerIndex = files.index("stickers_used")
+	del files[stickerIndex]
+	shutil.move("stickers_used", archive)
+
+files = [x for x in files if not ".py" in x]
 
 
-if not os.path.exists(media):
-	os.mkdir(media)
+if not os.path.exists(archive):
+	os.mkdir(archive)
 
 for file in files:
 	try:
 		os.chdir(file)
 		os.rename("message.json", "..\\"+file+".json")
 		os.chdir("..")
-		shutil.move(file, media+file)
+		shutil.move(file, archive+file)
 	except:
-		os.chdir("..")
 		print("skipped", file)
+
+
 

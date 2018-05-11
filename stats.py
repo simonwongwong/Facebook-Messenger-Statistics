@@ -9,8 +9,8 @@ def setTotals(total_dict):
 	global totals
 	totals = total_dict
 
-def sortDict(unsorted, topNum):
-	sorted_dict = dict(sorted(unsorted.items(), key=operator.itemgetter(1), reverse=True))
+def sortDict(unsorted, topNum, reverse_sort=True):
+	sorted_dict = dict(sorted(unsorted.items(), key=operator.itemgetter(1), reverse=reverse_sort))
 	top_keys = list(sorted_dict.keys())[:topNum]
 	return [sorted_dict, top_keys]
 
@@ -270,6 +270,40 @@ def typesOfMessages(chat_dict, chat_to_analyze='ANY_CHAT'):
 
 	return df_type_msg
 
+def chatImbalance(chat_dict, chats_to_analyze):
+	data = {}
+	imbalance = {}
+	total_received = 0
+	total_sent = 0
+
+	for chat_name in chats_to_analyze:
+		chat = chat_dict[chat_name]
+		#only look at non-group chats, otherwise imbalance will always fall on group chats
+		if chat.isGroupChat(): 
+			continue
+
+		data[chat_name] = {'received_messages':0, 'chat_total':chat.getNumMessages()}
+		messages = chat.getMessages()
+
+		for message_data in messages:
+			if message_data['sender'] == chat_name:
+				data[chat_name]['received_messages'] += 1
+				total_received += 1
+			else: 
+				total_sent += 1
+
+		imbalance[chat_name] = (data[chat_name]['received_messages'] * 100) / data[chat_name]['chat_total']
+
+	sorted_dict, top_keys = sortDict(imbalance, len(imbalance), reverse_sort=False)
+	most_imbalanced = []
+
+	for i in range(0, len(top_keys)):
+		rank = i+1
+		chat = top_keys[i]
+		imbal = sorted_dict[chat]
+		most_imbalanced.append({'rank':rank, 'chat':chat, '% of messages were received': imbal})
+		
+	return exportDataFrame(most_imbalanced, 'most_imbalanced.csv')	
 
 
 

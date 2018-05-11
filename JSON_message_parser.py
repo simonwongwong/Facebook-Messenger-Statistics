@@ -43,7 +43,8 @@ def parse(chats_to_parse = PARSE_ALL):
 
 		try:
 			newChat.setParticipants(chat_data['participants'])
-			newChat.setGroupChat()
+			if len(chat_data['participants']) > 1:
+				newChat.setGroupChat()
 		except:
 			newChat.setParticipants('unable to find participants')
 
