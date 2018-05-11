@@ -30,6 +30,10 @@ Open the Jupyter notebook and run the code to generate your report and interact 
 ![run](pictures/run.png)
 
 # Requirements
+Download requirements.txt to quickly install all required libraries using
+```
+pip install -r "requirements.txt"
+```
 * matplotlib
 * numpy
 * pandas
