@@ -21,18 +21,26 @@ def sortDict(unsorted, topNum, reverse_sort=True):
 			heappush(top, (value,chat))
 
 	top.sort(reverse=reverse_sort)
-	# print(top, unsorted)
 
 	return top
-
-	# sorted_dict = dict(sorted(unsorted.items(), key=operator.itemgetter(1), reverse=reverse_sort))
-	# top_keys = list(sorted_dict.keys())[:topNum]
-	# return [sorted_dict, top_keys]
 
 def exportDataFrame(top_list, filename):
 	top_frame = pd.DataFrame(top_list)
 	top_frame.to_csv('.\\csv files\\' + filename)	
 	return top_frame
+
+def createDict(top_values, total=None, **labels):
+	list_of_dicts = []
+
+	for i in range(0, len(top_values)):
+		rank = i+1
+		sender = top_values[i][1]
+		value = top_values[i][0]
+		list_of_dicts.append({'rank':rank, labels['key']:sender, labels['value']: value})
+		if total != None:
+			list_of_dicts[-1][labels['percent']] = value*100/total
+
+	return list_of_dicts
 
 def getAverageMessageLength(chat_dict, topNum, chats_to_analyze, typeLen='words'):
 	message_length = {}
@@ -67,13 +75,7 @@ def getAverageMessageLength(chat_dict, topNum, chats_to_analyze, typeLen='words'
 
 	topValues = sortDict(average_length, topNum)
 
-	average_message_length = []
-
-	for i in range(0, len(topValues)):
-		rank = i+1
-		sender = topValues[i][1]
-		length = topValues[i][0]
-		average_message_length.append({'rank':rank, 'sender':sender, 'average message length': length})
+	average_message_length = createDict(topValues, key='sender', value='average message length')
 	
 	return exportDataFrame(average_message_length, 'average_message_length.csv')
 
@@ -101,13 +103,13 @@ def inMostGroupChats(chat_dict, topNum):
 				person[participant] = 1
 
 	topValues = sortDict(person, topNum)
-	most_common_participant = []
+	most_common_participant = createDict(topValues, total=numGroupChats, key='participant', value='number of group chats', percent='% of total chats')
 
-	for i in range(0, len(topValues)):
-		rank = i+1
-		participant = topValues[i][1]
-		numChats = topValues[i][0]
-		most_common_participant.append({'rank':rank, 'participant':participant, 'number of group chats': numChats, '% of total chats': numChats*100/numGroupChats})
+	# for i in range(0, len(topValues)):
+	# 	rank = i+1
+	# 	participant = topValues[i][1]
+	# 	numChats = topValues[i][0]
+	# 	most_common_participant.append({'rank':rank, 'participant':participant, 'number of group chats': numChats, '% of total chats': numChats*100/numGroupChats})
 	
 	return exportDataFrame(most_common_participant, 'most_common_participant.csv')
 
@@ -125,13 +127,13 @@ def getMostMessaged(chat_dict, topNum):
 	
 	topValues = sortDict(message_dict, topNum)
 
-	most_messaged = []
+	most_messaged = createDict(topValues, total=totals['total_messages'], key='chat', value='number of messages', percent='% of total messages')
 
-	for i in range(0, len(topValues)):
-		rank = i+1
-		chat = topValues[i][1]
-		numMsg = topValues[i][0]
-		most_messaged.append({'rank':rank, 'chat':chat, 'number of messages': numMsg, '% of total messages': numMsg*100/totals['total_messages']})
+	# for i in range(0, len(topValues)):
+	# 	rank = i+1
+	# 	chat = topValues[i][1]
+	# 	numMsg = topValues[i][0]
+	# 	most_messaged.append({'rank':rank, 'chat':chat, 'number of messages': numMsg, '% of total messages': numMsg*100/totals['total_messages']})
 	
 	return exportDataFrame(most_messaged, 'most_messaged.csv')
 
@@ -161,14 +163,14 @@ def getMostUsedWords(chat_dict, topNum, sender, chars = 1):
 
 	topValues = sortDict(word_dict, topNum)
 
-	mostWordsList = []
+	mostWordsList = createDict(topValues, total=totals['total_messages'], key='word', value='number of uses', percent='% of total messages')
 
-	for i in range(0, len(topValues)):
-		rank = i+1
-		word = topValues[i][1]
-		num = topValues[i][0]
+	# for i in range(0, len(topValues)):
+	# 	rank = i+1
+	# 	word = topValues[i][1]
+	# 	num = topValues[i][0]
 
-		mostWordsList.append({'rank':rank, 'word':word, 'number of uses':num, '% of total messages':num*100/totals['total_messages']})
+	# 	mostWordsList.append({'rank':rank, 'word':word, 'number of uses':num, '% of total messages':num*100/totals['total_messages']})
 
 	return exportDataFrame(mostWordsList, 'most_used_words.csv')
 
