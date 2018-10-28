@@ -4,11 +4,17 @@ import pandas as pd
 from datetime import datetime
 
 
-def parse_from_json():
-    """ Use this when the PWD contains all the JSON files with chat data and it will parse everything into two DataFrames.
-        One to hold the data for each chat and one to hold all messages. These DataFrames will be returned  """
+CHATDF_FILENAME = "chat_df.csv"
+MSGDF_FILENAME = "msg_df.csv"
 
-    all_files = [file for file in os.listdir() if file.endswith(".json")]
+
+def parse_from_json(path=None):
+    """ Use this when the PWD contains all the JSON files with chat data and it will parse everything into two DataFrames.
+        One to hold the data for each chat and one to hold all messages. These DataFrames will be returned  
+
+        Pass in the path where your chat data was extracted using extract.py or leave empty to use current directory"""
+
+    all_files = check_path(path, "json")
 
     chat_data = []
     chat_cols = ['participants', 'title', 'is_still_participant', 'thread_type', 'thread_path']
@@ -46,20 +52,40 @@ def parse_from_json():
     return chat_df, msg_df
 
 
-def load_from_csv():
-    """ reads and returns DataFrame from persisted DataFrames in CSV format """
-    chat_df = pd.read_csv("chat_df.csv", converters={"participants": eval})
-    msg_df = pd.read_csv("msg_df.csv")
+def load_from_csv(path=None):
+    """ reads and returns DataFrame from persisted DataFrames in CSV format.
+        Pass in a path to where the CSV files are located or leave blank to use current directory """
+    chat_file = check_path(path, CHATDF_FILENAME)[0]
+    msg_file = check_path(path, MSGDF_FILENAME)[0]
+
+    chat_df = pd.read_csv(chat_file, converters={"participants": eval}, index_col='thread_path')
+    msg_df = pd.read_csv(msg_file, index_col=0)
     msg_df['timestamp'] = pd.to_datetime(msg_df['timestamp'])
 
     return chat_df, msg_df
 
 
 def persist(chat_df, msg_df):
-    chat_df.to_csv("chat_df.csv")
-    msg_df.to_csv("msg_df.csv")
+    chat_df.to_csv(CHATDF_FILENAME)
+    msg_df.to_csv(MSGDF_FILENAME)
 
     return True
+
+
+def check_path(path, fmt):
+    if path and not os.path.isdir(path):
+        print("%s is not a valid directory" % path)
+        raise NotADirectoryError
+
+    filenames = os.listdir(path) if path else os.listdir()
+    abs_path = os.path.abspath(path) if path else os.getcwd()
+    matching_files = [abs_path + "\\" + file for file in filenames if file.lower().endswith(fmt)]
+
+    if len(matching_files) == 0:
+        print("No %s file found at %s" % (fmt, abs_path))
+        raise FileNotFoundError
+
+    return matching_files
 
 
 if __name__ == "__main__":
