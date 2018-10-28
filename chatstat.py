@@ -9,24 +9,35 @@ class ChatStat:
         self.msg_df = msg_df
 
     def print_df(self):
+        """ prints both dataframes """
         print("------ CHATS DATAFRAME ------")
         print(self.chat_df)
         print("------ MESSAGES DATAFRAME ------")
         print(self.msg_df)
 
     def biggest_chat(self, top=10):
+        """ plots the largest chats overall. by default, only plots top 10 """
         count_df = self.msg_df.groupby("thread_path").count()
         count_df.sort_values("msg", inplace=True, ascending=False)
         count_df = count_df[:top]
         count_df = count_df.join(self.chat_df)
-        count_df.plot(x="title", y="msg", kind="bar", legend=False)
+        plot = count_df.plot(x="title", y="msg", kind="bar", legend=False, title="Largest Chats (top %d)" % top, rot=70)
+        plot.set_ylabel("Total number of messages")
+        plot.set_xlabel("Chat name")
 
-    def sent_from(self, top=10, omit_first=False):
-        count_df = self.msg_df.groupby("sender").count()
+        return plot
+
+    def sent_from(self, chat, top=10, omit_first=False):
+        """ plots the number of messages received based on sender for the DF passed in. Can be used on filtered DataFrames or filtered. by default, only plots top 10 senders """
+        count_df = chat.groupby("sender").count()
         count_df.sort_values("msg", inplace=True, ascending=False)
         count_df = count_df[1:top] if omit_first else count_df[:top]
         count_df = count_df.join(self.chat_df)
-        count_df.plot(y="msg", kind="bar", legend=False)
+        plot = count_df.plot(y="msg", kind="bar", legend=False, title="Number of messages by sender (top %d)" % top, rot=70)
+        plot.set_ylabel("Total number of messages")
+        plot.set_xlabel("Message Sender")
+
+        return plot
 
     def msg_types(self, df):
         """ Takes a filtered msg_df (based on sender or chat title) and breaks down the type of messages """
@@ -35,7 +46,10 @@ class ChatStat:
         plot = type_df.plot(kind='pie', y='type', figsize=(8, 8), title="Types of Multimedia")
         plot.set_ylabel("")
 
+        return plot
+
     def personal_stats(self, name):
+        """ Plots a bunch of different plots based on a fitlered DataFrame of messages from `name` """
         from_sender = self.msg_df[self.msg_df['sender'] == name]
         if from_sender.empty:
             print("Could not find any messages from %s" % name)
@@ -52,23 +66,29 @@ class ChatStat:
         else:
             pie = full
 
-        _fig, proportions = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
+        fig, proportions = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
+        fig.suptitle("Where are %s's messages going?" % name, fontsize=20)
         pie.plot(ax=proportions[0], kind='pie', y='proportion', legend=False, labeldistance=0.2, rotatelabels=True).set_ylabel("")
         proportions[1].axis('off')
-        full = (full * 100).round(4)
-        proportions[1].table(cellText=full.values, rowLabels=full.index, loc='right', colLabels=full.columns, colWidths=[0.2]).scale(1.2, 1.2)
+        full = (full * 100).round(4)[:20]
+        proportions[1].table(cellText=full.values, rowLabels=full.index, loc='right', colLabels=["percentage"], colWidths=[0.2]).scale(1.2, 1.2)
 
         self.msg_types(from_sender)
         self.time_stats(from_sender)
+        self.word_counts(from_sender)
 
     def stat_by_chat(self, chat):
+        """ Plots a bunch of different plots based on a fitlered DataFrame of messages in the chat `chat` """
         thread = self.chat_df[self.chat_df.title == chat].index[0]
         from_chat = self.msg_df[self.msg_df.thread_path == thread]
+        self.sent_from(from_chat, top=10)
         self.msg_types(from_chat)
         self.time_stats(from_chat)
 
     def time_stats(self, df):
-        _, axes = plt.subplots(nrows=2, ncols=2, figsize=(16, 10))
+        """ Plots the time-based activity of the passed in DataFrame `df` """
+        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(16, 10))
+        fig.suptitle("Time-based stats", fontsize=20)
         time_indexed = df.set_index('timestamp')
         time_indexed['year'] = time_indexed.index.year
         time_indexed['month'] = time_indexed.index.strftime("%b")
@@ -91,6 +111,46 @@ class ChatStat:
         minutely = time_indexed.groupby("minute").count()
         minutely.plot(ax=axes[1][1], kind='bar', y='msg', legend=False)
         axes[1][1].set_ylabel("Number of Messsages")
+
+    def word_counts(self, chat, lengths=[1, 3, 5, 7], top=10):
+        """ Counts the word usage based on the passed in DataFrame `chat` and plots words that are longer than `lengths` """
+        messages = chat.msg
+        words = {'count': {}}
+        for msg in messages:
+            msg = str(msg).encode('latin1').decode('utf8')  # need this to get around poor encoding by Facebook
+            for word in msg.split(" "):
+                word = word.lower()
+                word = word.rstrip('?:!.,;')
+                if word in words['count']:
+                    words['count'][word] += 1
+                else:
+                    words['count'][word] = 1
+
+        word_df = pd.DataFrame(words).sort_values("count", ascending=False)
+        num_plots = len(lengths)
+        numrows = num_plots // 2 + num_plots % 2
+        fig, ax = plt.subplots(nrows=numrows, ncols=2, figsize=(16, 5 * numrows))
+        if num_plots % 2 != 0:
+            if numrows > 1:
+                ax[numrows - 1][1].axis("off")
+            else:
+                ax[1].axis("off")
+        fig.suptitle("Word Counts", fontsize=20)
+        plot_index = 0
+
+        def create_word_df(l):
+            len_bool = [(len(word) >= l) for word in word_df.index]
+            df = word_df[len_bool][:top]
+            return df
+
+        for l in lengths:
+            r = plot_index // 2
+            c = 0 if plot_index % 2 == 0 else 1
+            plot_index += 1
+            if numrows > 1:
+                create_word_df(l).plot(ax=ax[r][c], kind="bar", y="count", legend=False, rot=50, title="Top words %d letters or more" % l)
+            else:
+                create_word_df(l).plot(ax=ax[c], kind="bar", y="count", legend=False, rot=50, title="Top words %d letters or more" % l)
 
 
 if __name__ == "__main__":
