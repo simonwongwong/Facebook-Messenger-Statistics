@@ -5,11 +5,13 @@ archive = ".\\archive\\"
 files = os.listdir()
 
 try:
-	stickerIndex = files.index("stickers_used")
-	del files[stickerIndex]
+	sticker_folder = files.index("stickers_used")
+	del files[sticker_folder]
 	shutil.move("stickers_used", archive)
+except:
+	pass
 
-files = [x for x in files if not ".py" in x]
+files = [x for x in files if os.path.isdir(x)]
 
 
 if not os.path.exists(archive):
@@ -23,6 +25,5 @@ for file in files:
 		shutil.move(file, archive+file)
 	except:
 		print("skipped", file)
-
 
 
