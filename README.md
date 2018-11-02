@@ -3,38 +3,43 @@ Discover fun stats about your Facebook Messenger usage such as: most used words,
 
 For **instructions** [scroll down](#how-to-use)
 
-Example report [here](http://simonwong.io/facebook-messenger-stats.html)
-
+# Example Report
 ![report](pictures/screenshot.png)
 
 # How to use
 
-See [requirements](#requirements) for required Python libraries
-
 Download your Facebook Messenger data [in your setings page](https://www.facebook.com/settings)
-
 ![facebook settings](pictures/download.png)
 
 Make sure to download in JSON format. Media quality can be set to low for a faster download
-
 ![download](pictures/download_page.PNG)
+## Python and Python libraries
 
-Drop the Python files and Jupyter notebook into the 'messages' folder and run [the extraction script](extract.py) to pull the JSON files from the individual folders
-
-Then drop the rest of the Python files into the folder with the extracted JSON files
-
-![folder](pictures/folder.png)
-
-Open the Jupyter notebook and run the code to generate your report and interact with it:
-
-![run](pictures/run.png)
-
-# Requirements
-Download requirements.txt to quickly install all required libraries using
+1. If you don't have Python, install Python 3.7+
+2. Open a console on the project directory and run:
 ```
 pip install -r "requirements.txt"
 ```
-* matplotlib
-* numpy
-* pandas
-* jupyter
+
+Copy [the extraction script](extract.py) into the 'messages' folder from the Facebook download
+
+![folder](pictures/folder.png)
+
+Run the extract script to pull the JSON files from the individual folders into one directory
+
+![extracted](pictures/extracted_folder.png)
+
+Copy the rest of the files in the project folder (python files and Jupyter notebook) into the same folder with all of the JSON files.
+
+![ready](pictures/ready.png)
+
+Open a console in the folder and start Jupyter Notebook using `jupyter notebook` command.
+From the Notebook file tree, open the Statistics notebook `Statistics.ipynb`
+
+![notebook](pictures/notebook.png)
+
+
+Run the code to generate your report and interact with it:
+
+![run](pictures/run.png)
+
