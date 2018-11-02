@@ -15,38 +15,37 @@ class ChatStat:
         print("------ MESSAGES DATAFRAME ------")
         print(self.msg_df)
 
-    def biggest_chat(self, top=10):
+    def biggest_chat(self, top=10, ax=None):
         """ plots the largest chats overall. by default, only plots top 10 """
         count_df = self.msg_df.groupby("thread_path").count()
         count_df.sort_values("msg", inplace=True, ascending=False)
         count_df = count_df[:top]
         count_df = count_df.join(self.chat_df)
-        plot = count_df.plot(x="title", y="msg", kind="bar", legend=False, title="Largest Chats (top %d)" % top, rot=70)
+        plot = count_df.plot(ax=ax, x="title", y="msg", kind="bar", legend=False, title="Largest Chats (top %d)" % top, rot=70)
         plot.set_ylabel("Total number of messages")
         plot.set_xlabel("Chat name")
 
-        return plot
-
-    def sent_from(self, chat, top=10, omit_first=False):
+    def sent_from(self, chat, top=10, omit_first=False, ax=None):
         """ plots the number of messages received based on sender for the DF passed in. Can be used on filtered DataFrames or filtered. by default, only plots top 10 senders """
         count_df = chat.groupby("sender").count()
         count_df.sort_values("msg", inplace=True, ascending=False)
         count_df = count_df[1:top] if omit_first else count_df[:top]
         count_df = count_df.join(self.chat_df)
-        plot = count_df.plot(y="msg", kind="bar", legend=False, title="Number of messages by sender (top %d)" % top, rot=70)
+        plot = count_df.plot(ax=ax, y="msg", kind="bar", legend=False, title="Number of messages by sender (top %d)" % top, rot=70)
         plot.set_ylabel("Total number of messages")
         plot.set_xlabel("Message Sender")
 
-        return plot
-
-    def msg_types(self, df):
+    def msg_types(self, df, ax=None, fsize=None):
         """ Takes a filtered msg_df (based on sender or chat title) and breaks down the type of messages """
         type_dict = {"type": {"stickers": df.sticker.count(), "photos": df.photos.count(), "videos": df.videos.count(), "links": df[[("http" in str(msg)) for msg in df.msg]].msg.count()}}
         type_df = pd.DataFrame(type_dict)
-        plot = type_df.plot(kind='pie', y='type', figsize=(8, 8), title="Types of Multimedia")
+        plot = type_df.plot(ax=ax, kind='pie', figsize=fsize, y='type', title="Types of Multimedia")
         plot.set_ylabel("")
 
-        return plot
+    def chat_types(self, messages, ax=None, fsize=None):
+        grouped = messages.groupby("thread_path").count().join(self.chat_df).groupby("thread_type").sum()
+        plot = grouped.plot(ax=ax, kind='pie', figsize=fsize, y='msg', title='Chat Type')
+        plot.set_ylabel("")
 
     def personal_stats(self, name):
         """ Plots a bunch of different plots based on a fitlered DataFrame of messages from `name` """
@@ -73,7 +72,9 @@ class ChatStat:
         full = (full * 100).round(4)[:20]
         proportions[1].table(cellText=full.values, rowLabels=full.index, loc='right', colLabels=["percentage"], colWidths=[0.2]).scale(1.2, 1.2)
 
-        self.msg_types(from_sender)
+        _, pieax = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
+        self.msg_types(from_sender, pieax[0])
+        self.chat_types(from_sender, pieax[1])
         self.time_stats(from_sender)
         self.word_counts(from_sender)
 
@@ -82,7 +83,7 @@ class ChatStat:
         thread = self.chat_df[self.chat_df.title == chat].index[0]
         from_chat = self.msg_df[self.msg_df.thread_path == thread]
         self.sent_from(from_chat, top=10)
-        self.msg_types(from_chat)
+        self.msg_types(from_chat, fsize=(8, 8))
         self.time_stats(from_chat)
 
     def time_stats(self, df):
