@@ -35,12 +35,12 @@ def parse_from_json(path=None):
 
         for msg in current_chat['messages']:
             ts = msg.get('timestamp_ms', 0) // 1000
-            body = msg.get('content', '')
-            sender = msg.get('sender_name', '')
-            msg_type = msg.get('type', '')
-            sticker = msg.get('sticker', '')
-            photos = msg.get('photos', '')
-            videos = msg.get('videos', '')
+            body = msg.get('content', None)
+            sender = msg.get('sender_name', None)
+            msg_type = msg.get('type', None)
+            sticker = msg.get('sticker', None)
+            photos = msg.get('photos', None)
+            videos = msg.get('videos', None)
 
             message_data.append([thread_path, ts, body, sender, msg_type, sticker, photos, videos])
 
