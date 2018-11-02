@@ -27,9 +27,10 @@ class ChatStat:
 
     def sent_from(self, chat, top=10, omit_first=False, ax=None):
         """ plots the number of messages received based on sender for the DF passed in. Can be used on filtered DataFrames or filtered. by default, only plots top 10 senders """
+        start = int(omit_first)
         count_df = chat.groupby("sender").count()
         count_df.sort_values("msg", inplace=True, ascending=False)
-        count_df = count_df[1:top] if omit_first else count_df[:top]
+        count_df = count_df[start:top]
         count_df = count_df.join(self.chat_df)
         plot = count_df.plot(ax=ax, y="msg", kind="bar", legend=False, title="Number of messages by sender (top %d)" % top, rot=70)
         plot.set_ylabel("Total number of messages")
@@ -50,6 +51,8 @@ class ChatStat:
     def personal_stats(self, name):
         """ Plots a bunch of different plots based on a fitlered DataFrame of messages from `name` """
         from_sender = self.msg_df[self.msg_df['sender'] == name]
+        print("Total # of messages: %d" % from_sender.msg.size)
+
         if from_sender.empty:
             print("Could not find any messages from %s" % name)
             return ""
@@ -82,14 +85,16 @@ class ChatStat:
         """ Plots a bunch of different plots based on a fitlered DataFrame of messages in the chat `chat` """
         thread = self.chat_df[self.chat_df.title == chat].index[0]
         from_chat = self.msg_df[self.msg_df.thread_path == thread]
+        print("Total # of messages: %d" % from_chat.msg.size)
         self.sent_from(from_chat, top=10)
         self.msg_types(from_chat, fsize=(8, 8))
         self.time_stats(from_chat)
+        self.word_counts(from_chat)
 
     def time_stats(self, df):
         """ Plots the time-based activity of the passed in DataFrame `df` """
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(16, 10))
-        fig.suptitle("Time-based stats", fontsize=20)
+        fig.suptitle("Time-based Stats: Procrastination Metrics", fontsize=20)
         time_indexed = df.set_index('timestamp')
         time_indexed['year'] = time_indexed.index.year
         time_indexed['month'] = time_indexed.index.strftime("%b")
@@ -152,6 +157,12 @@ class ChatStat:
                 create_word_df(l).plot(ax=ax[r][c], kind="bar", y="count", legend=False, rot=50, title="Top words %d letters or more" % l)
             else:
                 create_word_df(l).plot(ax=ax[c], kind="bar", y="count", legend=False, rot=50, title="Top words %d letters or more" % l)
+
+    def chat_counts(self, top=10, omit_first=False, ax=None):
+        """ counts the number of chats each person is in and plots the top x people in the most chats """
+        start = int(omit_first)
+        counts = self.msg_df.groupby(["sender", "thread_path"]).size().reset_index().groupby("sender").count().sort_values('thread_path', ascending=False)
+        counts[start:top].plot(ax=ax, kind="bar", y="thread_path", title="Number of group chats by person", legend=False, rot=50).set_ylabel("Count")
 
 
 if __name__ == "__main__":
