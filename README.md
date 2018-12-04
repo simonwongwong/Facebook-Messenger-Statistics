@@ -21,7 +21,7 @@ Make sure to download in JSON format. Media quality can be set to low for a fast
 pip install -r "requirements.txt"
 ```
 
-Copy [the extraction script](extract.py) into the 'messages' folder from the Facebook download
+Copy [the extraction script](extract.py) into the "{extract_location}/messages/inbox" folder from the Facebook download (this folder should contain folders with chat names and JSON files within those folders). Script could also be dropped in "{extract_location}/messages/archived_threads" or any of the other folders within "/messages". JSON files should be placed all in one directory if they are to be included in the analysis.
 
 ![folder](pictures/folder.png)
 
