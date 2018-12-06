@@ -1,15 +1,18 @@
 import os
 import shutil
+from pathlib import Path
 
 """
 This script should be placed in the folder that contains folders with chat names (and chat JSON files within).
 Currently as of December 12, 2018 the correct folder would be "{extract_location}/messages/inbox"
 """
 
-archive = ".\\archive\\"
+archive = Path(os.getcwd() + "\\archive\\")
+root = Path(os.getcwd())
 
 files = os.listdir()
 
+# for backwards compatability with older facebook extracts
 try:
     sticker_folder = files.index("stickers_used")
     del files[sticker_folder]
@@ -26,8 +29,8 @@ if not os.path.exists(archive):
 for file in files:
     try:
         os.chdir(file)
-        os.rename("message.json", "..\\" + file + ".json")
+        os.rename("message.json", str(root / (file + ".json")))
         os.chdir("..")
-        shutil.move(file, archive + file)
+        os.rename(file, archive / file)
     except:
         print("skipped", file)
