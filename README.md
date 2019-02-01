@@ -1,4 +1,5 @@
-# Facebook-Messenger-Statistics
+# Facebook Messenger Statistics
+Have you downloaded your Facebook data? Are you curious/concerned about your Messenger usage?
 Discover fun stats about your Facebook Messenger usage such as: most used words, most active year, most active hours, etc.
 
 For **instructions** [scroll down](#how-to-use)
