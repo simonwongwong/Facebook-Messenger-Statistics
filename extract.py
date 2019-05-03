@@ -4,10 +4,10 @@ from pathlib import Path
 
 """
 This script should be placed in the folder that contains folders with chat names (and chat JSON files within).
-Currently as of December 12, 2018 the correct folder would be "{extract_location}/messages/inbox"
+Currently as of December 2018 the correct folder would be "{extract_location}/messages/inbox"
 """
 
-archive = Path(os.getcwd() + "\\archive\\")
+archive = Path(os.getcwd()) / "archive"
 root = Path(os.getcwd())
 
 files = os.listdir()
@@ -29,8 +29,14 @@ if not os.path.exists(archive):
 for file in files:
     try:
         os.chdir(file)
-        os.rename("message.json", str(root / (file + ".json")))
+        if "message.json" in os.listdir():
+            os.rename("message.json", str(root / (file + ".json")))
+        else:
+            os.chdir("..")
+            continue
         os.chdir("..")
         os.rename(file, archive / file)
-    except:
-        print("skipped", file)
+    except Exception as err:
+        print(err)
+        print("skipped folder due to error:", file)
+        os.chdir(root)
