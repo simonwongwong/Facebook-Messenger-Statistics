@@ -29,8 +29,8 @@ if not os.path.exists(archive):
 for file in files:
     try:
         os.chdir(file)
-        if "message.json" in os.listdir():
-            os.rename("message.json", str(root / (file + ".json")))
+        if "message_1.json" in os.listdir():
+            os.rename("message_1.json", str(root / (file + ".json")))
         else:
             os.chdir("..")
             continue
