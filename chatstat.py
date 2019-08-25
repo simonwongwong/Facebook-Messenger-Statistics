@@ -217,6 +217,7 @@ class ChatStat:
         fig.add_trace(source_graph, row=1, col=1)
         fig.add_trace(msg_types_graph, row=2, col=1)
         fig.add_trace(chat_types_graph, row=2, col=2)
+        fig.update_layout(title_text=f"Stats from sender: {name}")
         fig.show()
         self.time_stats(from_sender, show=True)
         self.word_counts(from_sender, length=word_lengths, show=True)
