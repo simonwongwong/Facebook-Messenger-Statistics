@@ -9,7 +9,7 @@ For **instructions** [scroll down](#how-to-use)
 
 # How to use
 
-Download your Facebook Messenger data [in your setings page](https://www.facebook.com/settings)
+Download your Facebook Messenger data [in your settings page](https://www.facebook.com/settings)
 ![facebook settings](pictures/download.png)
 
 Make sure to download in JSON format. Media quality can be set to low for a faster download
