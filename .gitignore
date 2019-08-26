@@ -3,3 +3,6 @@
 .ipynb_checkpoints
 __pycache__
 test.py
+env
+*dummy*.py
+facebook_messenger_usage_report.html

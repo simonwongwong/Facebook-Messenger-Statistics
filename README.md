@@ -2,45 +2,56 @@
 Have you downloaded your Facebook data? Are you curious/concerned about your Messenger usage?
 Discover fun stats about your Facebook Messenger usage such as: most used words, most active year, most active hours, etc.
 
+Plots can be created using a Jupyter Notebook for exploratory analysis or a basic HTML report can be generated using the `generate_report.py` script.
+
+![demo](pictures/demo.gif)
+
 For **instructions** [scroll down](#how-to-use)
 
 # Example Report
+An interactive sample report can be found on [my website](https://simonwong.io/sample_report.html)
 ![report](pictures/screenshot.png)
 
 # How to use
-
-Download your Facebook Messenger data [in your setings page](https://www.facebook.com/settings)
+## Download your Messenger data from Facebook
+Download your Facebook Messenger data [in your settings page](https://www.facebook.com/settings)
 ![facebook settings](pictures/download.png)
 
 Make sure to download in JSON format. Media quality can be set to low for a faster download
 ![download](pictures/download_page.PNG)
-## Python and Python libraries
+## Clone this repository
+Clone this repo using:
+```
+git clone git@github.com:simonwongwong/Facebook-Messenger-Statistics.git
+```
+And open the folder/navigate to the directory
+## Install Python and Python libraries
 
 1. If you don't have Python, install Python 3.7+
-2. Open a console on the project directory and run:
+2. Open a console on the project directory (or create your own custom environment) and run:
 ```
 pip install -r "requirements.txt"
 ```
 
-Copy [the extraction script](extract.py) into the "{extract_location}/messages/inbox" folder from the Facebook download (this folder should contain folders with chat names and JSON files within those folders). Script could also be dropped in "{extract_location}/messages/archived_threads" or any of the other folders within "/messages". JSON files should be placed all in one directory if they are to be included in the analysis.
+## Generate an HTML report
+Run the `generate_report.py` script either using your terminal or double-click the file on Windows
 
-![folder](pictures/folder.png)
+Locate your `inbox` folder from your extracted Facebook data using the file dialog. This folder should contain more folders for each chat and each of those folders should contain a `message_1.json` file.
+![filedialog](pictures/file_dialog.png)
 
-Run the extract script to pull the JSON files from the individual folders into one directory
+If it runs successfully, you should receive a message similar to:
+```
+Parsing data from C:/Users/Simon/Desktop/messages/inbox
+Report generated successfully!
+```
+And an HTML report should be at your current working directory.
 
-![extracted](pictures/extracted_folder.png)
-
-Copy the rest of the files in the project folder (python files and Jupyter notebook) into the same folder with all of the JSON files.
-
-![ready](pictures/ready.png)
-
+## Exploratory analysis on Jupyter
 Open a console in the folder and start Jupyter Notebook using `jupyter notebook` command.
 From the Notebook file tree, open the Statistics notebook `Statistics.ipynb`
 
 ![notebook](pictures/notebook.png)
 
+Make sure the correct directory is passed into `loader.parse_from_json()` and then have fun!
 
-Run the code to generate your report and interact with it:
-
-![run](pictures/run.png)
-
+See `chatstat.py` or docstrings for parameters you can play with in the plot generators. 

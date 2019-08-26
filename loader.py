@@ -2,21 +2,43 @@ import json
 import os
 import pandas as pd
 from datetime import datetime
+from pathlib import Path
 
 
 CHATDF_FILENAME = "chat_df.csv"
 MSGDF_FILENAME = "msg_df.csv"
+JSON_FILENAME = "message_1.json"
 
 
 def parse_from_json(path=None):
-    """ Use this when the PWD contains all the JSON files with chat data and it will parse everything into two DataFrames.
-        One to hold the data for each chat and one to hold all messages. These DataFrames will be returned
+    """
+    Parses JSON data into two pandas DataFrames:
+    One to hold the data for each chat and one to hold all messages. 
+    Pass in the path where your chat data was extracted or leave empty 
+    to use current directory
 
-        Pass in the path where your chat data was extracted using extract.py or leave empty to use current directory"""
+    Typical usage would have path = {facebook_data_dir}/messages/inbox
 
-    path = os.getcwd()
-    all_files = os.listdir(path)
-    files_json = [f for f in all_files if f[-4:] == 'json']
+    Parameters
+    ----------
+    path: str
+        Path of extracted facebook messages, typically looks like:
+        `/path/to/facebook_data_dir/messages/inbox` or
+        `/path/to/facebook_data_dir/messages/archived_threads` or
+        `/path/to/facebook_data_dir/messages/message_requests`
+
+    Returns
+    -------
+    pandas.DataFrame, pandas.DataFrame
+        returns chat_df and msg_df, DataFrames containing information on
+        chats and messages, respectively
+    """
+    path = path or os.getcwd()
+    path = Path(path)
+    if not os.path.isdir(path):
+        raise NotADirectoryError(f"{path} is not a directory")
+    messages_dir = [path / mdir for mdir in os.listdir(path)]
+    all_files = [msg_dir / JSON_FILENAME for msg_dir in messages_dir if JSON_FILENAME in os.listdir(msg_dir)]
 
     chat_data = []
     chat_cols = ['participants', 'title',
@@ -25,8 +47,8 @@ def parse_from_json(path=None):
     msg_cols = ['thread_path', 'timestamp', 'msg',
                 'sender', 'msg_type', 'sticker', 'photos', 'videos']
 
-    for file in files_json:
-        with open(file, encoding="ISO-8859-1") as json_file:
+    for json_file in all_files:
+        with open(json_file) as json_file:
             current_chat = json.load(json_file)
 
         participants = [x['name']
