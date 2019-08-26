@@ -9,6 +9,7 @@ Plots can be created using a Jupyter Notebook for exploratory analysis or a basi
 For **instructions** [scroll down](#how-to-use)
 
 # Example Report
+An interactive sample report can be found on [my website](https://simonwong.io/sample_report.html)
 ![report](pictures/screenshot.png)
 
 # How to use
