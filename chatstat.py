@@ -1,7 +1,6 @@
 from datetime import datetime
 from plotly.subplots import make_subplots
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from functools import wraps
 
