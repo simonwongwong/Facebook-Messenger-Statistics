@@ -7,7 +7,7 @@ from pathlib import Path
 
 CHATDF_FILENAME = "chat_df.csv"
 MSGDF_FILENAME = "msg_df.csv"
-JSON_FILENAME = "message_1.json"
+JSON_FILENAME = "message_"
 
 
 def parse_from_json(path=None):
@@ -38,7 +38,7 @@ def parse_from_json(path=None):
     if not os.path.isdir(path):
         raise NotADirectoryError(f"{path} is not a directory")
     messages_dir = [path / mdir for mdir in os.listdir(path)]
-    all_files = [msg_dir / JSON_FILENAME for msg_dir in messages_dir if JSON_FILENAME in os.listdir(msg_dir)]
+    all_files = [msg_dir / json_file for msg_dir in messages_dir for json_file in os.listdir(msg_dir) if json_file.startswith(JSON_FILENAME)]
 
     chat_data = []
     chat_cols = ['participants', 'title',
