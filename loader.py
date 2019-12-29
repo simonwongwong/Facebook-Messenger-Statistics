@@ -41,6 +41,7 @@ def parse_from_json(path=None):
     all_files = [msg_dir / json_file for msg_dir in messages_dir for json_file in os.listdir(msg_dir) if json_file.startswith(JSON_FILENAME)]
 
     chat_data = []
+    threads = set()
     chat_cols = ['participants', 'title',
                  'is_still_participant', 'thread_type', 'thread_path']
     message_data = []
@@ -51,15 +52,19 @@ def parse_from_json(path=None):
         with open(json_file) as json_file:
             current_chat = json.load(json_file)
 
+        thread_path = current_chat['thread_path']
+        
         participants = [x['name']
                         for x in current_chat.get('participants', '')]
         title = current_chat.get('title', '')
         is_still_participant = current_chat.get('is_still_participant', '')
         thread_type = current_chat.get('thread_type', '')
-        thread_path = current_chat['thread_path']
 
-        chat_data.append(
-            [participants, title, is_still_participant, thread_type, thread_path])
+        # avoid duplicate chat entries for chats with multiple message_x.json files
+        if thread_path not in threads:
+            threads.add(thread_path)
+            chat_data.append(
+                [participants, title, is_still_participant, thread_type, thread_path])
 
         for msg in current_chat['messages']:
             ts = msg.get('timestamp_ms', 0) // 1000
