@@ -7,3 +7,4 @@ env
 *dummy*.py
 facebook_messenger_usage_report.html
 .messages
+venv

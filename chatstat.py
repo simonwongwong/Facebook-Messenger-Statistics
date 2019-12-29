@@ -273,6 +273,7 @@ class ChatStat:
         time_indexed['month'] = time_indexed.index.strftime("%b")
         time_indexed['hour'] = time_indexed.index.hour
         time_indexed['minute'] = time_indexed.index.minute
+        time_indexed['weekday'] = time_indexed.index.strftime("%a")
 
         return time_indexed
 
@@ -354,6 +355,46 @@ class ChatStat:
         minutely_graph = go.Bar(x=minutely_df.index, y=minutely_df.msg)
         return minutely_graph
 
+    def daily_graph(self, time_indexed, top=15):
+        """
+        generates an aggregated message count by minute
+
+        Parameters
+        ----------
+        time_indexed: pandas.DataFrame
+            time-indexed message DataFrame to plot from
+            (use `generate_time_indexed_df`)
+
+        Returns
+        -------
+        plotly.graph_objects.Bar
+            Bar plot of data
+        """
+        daily_df = time_indexed.resample("D").count().sort_values("msg", ascending=False)
+        daily_df = daily_df[:top]
+        daily_graph = go.Bar(x=daily_df.index.strftime("%Y-%b-%d"), y=daily_df.msg)
+        return daily_graph
+    
+    def weekday_graph(self, time_indexed):
+        """
+        generates an aggregated message count by minute
+
+        Parameters
+        ----------
+        time_indexed: pandas.DataFrame
+            time-indexed message DataFrame to plot from
+            (use `generate_time_indexed_df`)
+
+        Returns
+        -------
+        plotly.graph_objects.Bar
+            Bar plot of data
+        """
+        weekday_df = time_indexed.groupby("weekday").count()
+        weekday_df = weekday_df.reindex(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
+        weekday_graph = go.Bar(x=weekday_df.index, y=weekday_df.msg)
+        return weekday_graph
+
     @show_or_return
     def time_stats(self, messages=None, show=True):
         """ 
@@ -378,14 +419,20 @@ class ChatStat:
         monthly_graph = self.monthly_graph(time_indexed)
         hourly_graph = self.hourly_graph(time_indexed)
         minutely_graph = self.minutely_graph(time_indexed)
+        daily_graph = self.daily_graph(time_indexed)
+        weekday_graph = self.weekday_graph(time_indexed)
 
-        when = make_subplots(rows=2, cols=2, specs=[[{"type": "bar"}] * 2] * 2,
-                             subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute'])
+
+        when = make_subplots(rows=3, cols=2, specs=[[{"type": "bar"}] * 2] * 3,
+                             subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute', "Daily", "Day of Week"])
         when.add_trace(yearly_graph, row=1, col=1)
         when.add_trace(monthly_graph, row=1, col=2)
         when.add_trace(hourly_graph, row=2, col=1)
         when.add_trace(minutely_graph, row=2, col=2)
-        when.update_layout(height=950, width=950, title_text="Time-based Metrics", showlegend=False)
+        when.add_trace(daily_graph, row=3, col=1)
+        when.add_trace(weekday_graph, row=3, col=2)
+
+        when.update_layout(height=1425, width=950, title_text="Time-based Metrics", showlegend=False)
         graphs = [yearly_graph, monthly_graph, hourly_graph, minutely_graph]
         return when, graphs
 
