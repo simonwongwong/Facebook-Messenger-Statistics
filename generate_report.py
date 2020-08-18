@@ -48,15 +48,17 @@ if __name__ == "__main__":
     html += po.plot(how, output_type='div')
 
     # when are you chatting?
-    yearly_graph, monthly_graph, hourly_graph, minutely_graph = cs.time_stats(show=False)
+    yearly_graph, monthly_graph, hourly_graph, minutely_graph, daily_graph, weekday_graph = cs.time_stats(show=False)
     when = make_subplots(
-        rows=2, cols=2, specs=[[{"type": "bar"}] * 2] * 2,
-        subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute']
+        rows=3, cols=2, specs=[[{"type": "bar"}] * 2] * 3,
+        subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute', 'Single Day', 'Day of Week']
     )
     when.add_trace(yearly_graph, row=1, col=1)
     when.add_trace(monthly_graph, row=1, col=2)
     when.add_trace(hourly_graph, row=2, col=1)
     when.add_trace(minutely_graph, row=2, col=2)
+    when.add_trace(daily_graph, row=3, col=1)
+    when.add_trace(weekday_graph, row=3, col=2)
     when.update_layout(height=950, width=950, title_text="When are you chatting?", showlegend=False)
     html += po.plot(when, output_type='div')
 

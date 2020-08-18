@@ -22,7 +22,7 @@ def show_or_return(graph_func):
 
 class ChatStat:
     """
-    container for chat and messages dataframe with functions
+    container for chat and messages dataframe with methods
     to generate statistics
 
     Parameters
@@ -98,7 +98,7 @@ class ChatStat:
         top: int, default=10
             limits the plot to `top` number of chats
         omit_first: bool, default=False
-            toggle to omit the first largest chat, which is typically the user
+            toggle to omit the first largest sender, which is typically the user
         kind: str in {'pie', 'bar'}
             kind of chart to plot, pie or bar
         show: bool, default=True
@@ -424,7 +424,7 @@ class ChatStat:
 
 
         when = make_subplots(rows=3, cols=2, specs=[[{"type": "bar"}] * 2] * 3,
-                             subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute', "Daily", "Day of Week"])
+                             subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute', "Single Day", "Day of Week"])
         when.add_trace(yearly_graph, row=1, col=1)
         when.add_trace(monthly_graph, row=1, col=2)
         when.add_trace(hourly_graph, row=2, col=1)
@@ -433,7 +433,7 @@ class ChatStat:
         when.add_trace(weekday_graph, row=3, col=2)
 
         when.update_layout(height=1425, width=950, title_text="Time-based Metrics", showlegend=False)
-        graphs = [yearly_graph, monthly_graph, hourly_graph, minutely_graph]
+        graphs = [yearly_graph, monthly_graph, hourly_graph, minutely_graph, daily_graph, weekday_graph]
         return when, graphs
 
     @show_or_return
@@ -520,6 +520,29 @@ class ChatStat:
         fig = go.Figure(graph)
         fig.update_layout(title_text=f"Number of chats by person (Top {top})")
         return fig, graph
+    
+    def chat_window(self, thread, start, end):
+        """
+        Generates a JSON file for a chat between two timestamps
+
+        Parameters
+        ----------
+        thread: str
+            the unique thread_path for the chat
+        start: int
+            filter for messages after this timestamp
+        end: int
+            filter for messages before this timestamp
+
+        Returns
+        -------
+        None
+
+        Side Effect
+        -----------
+        Generates a JSON file that can be used with chat_display.html
+        """
+        # stub for something upcoming (possibly)
 
 
 if __name__ == "__main__":
