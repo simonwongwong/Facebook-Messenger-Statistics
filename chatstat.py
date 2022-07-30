@@ -10,6 +10,7 @@ def show_or_return(graph_func):
     decorator for functions that can either 
     return a graph object or show a figure
     """
+
     @wraps(graph_func)
     def wrapper(*args, **kwargs):
         fig, graph = graph_func(*args, **kwargs)
@@ -17,6 +18,7 @@ def show_or_return(graph_func):
             fig.show()
         else:
             return graph
+
     return wrapper
 
 
@@ -73,10 +75,10 @@ class ChatStat:
             count_df = count_df[count_df.thread_type == 'Regular']
         count_df = count_df[:top]
         if kind == "pie":
-            graph = go.Pie(labels=count_df.title, values=count_df.msg, title=f"Top {top} largest chats")
+            graph = go.Pie(labels=count_df.participants, values=count_df.msg, title=f"Top {top} largest chats")
             fig = go.Figure(graph)
         elif kind == "bar":
-            graph = go.Bar(x=count_df.title, y=count_df.msg)
+            graph = go.Bar(x=count_df.participants, y=count_df.msg)
             fig = go.Figure(graph)
             fig.update_layout(xaxis=go.layout.XAxis(title=go.layout.xaxis.Title(text="Chat")),
                               yaxis=go.layout.YAxis(title=go.layout.yaxis.Title(text="Number of Messages")))
@@ -146,9 +148,12 @@ class ChatStat:
             a Pie graph object
         """
         chat = self.msg_df if chat is None else chat
-        type_dict = {"type": {"stickers": chat.sticker.count(), "photos": chat.photos.count(), "videos": chat.videos.count(), "links": chat[[("http" in str(msg)) for msg in chat.msg]].msg.count()}}
+        type_dict = {
+            "type": {"stickers": chat.sticker.count(), "photos": chat.photos.count(), "videos": chat.videos.count(),
+                     "links": chat[[("http" in str(msg)) for msg in chat.msg]].msg.count()}}
         type_df = pd.DataFrame(type_dict)
-        graph = go.Pie(labels=type_df.index, values=type_df.type, textinfo='label+percent', showlegend=False, title="Types of Multimedia Used")
+        graph = go.Pie(labels=type_df.index, values=type_df.type, textinfo='label+percent', showlegend=False,
+                       title="Types of Multimedia Used")
         fig = go.Figure(graph)
         fig.update_layout(title_text="Types of Multimedia Used")
         return fig, graph
@@ -172,7 +177,8 @@ class ChatStat:
         """
         messages = self.msg_df if chat is None else chat
         grouped = messages.groupby("thread_path").count().join(self.chat_df).groupby("thread_type").sum()
-        graph = go.Pie(labels=grouped.index, values=grouped.msg, textinfo='label+percent', showlegend=False, title="Types of Chat")
+        graph = go.Pie(labels=grouped.index, values=grouped.msg, textinfo='label+percent', showlegend=False,
+                       title="Types of Chat")
         fig = go.Figure(graph)
         fig.update_layout(title_text="Types of Chat")
         return fig, graph
@@ -212,7 +218,8 @@ class ChatStat:
         source_graph = go.Pie(labels=full.index, values=full.proportion, title=f"Where are {name}'s messages from?")
         msg_types_graph = self.msg_types(from_sender, show=False)
         chat_types_graph = self.chat_types(from_sender, show=False)
-        fig = make_subplots(rows=2, cols=2, specs=[[{"type": "pie", "colspan": 2}, None], [{"type": "pie"}, {"type": "pie"}]])
+        fig = make_subplots(rows=2, cols=2,
+                            specs=[[{"type": "pie", "colspan": 2}, None], [{"type": "pie"}, {"type": "pie"}]])
         fig.add_trace(source_graph, row=1, col=1)
         fig.add_trace(msg_types_graph, row=2, col=1)
         fig.add_trace(chat_types_graph, row=2, col=2)
@@ -245,7 +252,7 @@ class ChatStat:
         print("Total # of messages: %d" % from_chat.msg.size)
         participants_graph = self.sent_from(from_chat, top=10, kind='pie', show=False)
         msg_types_graph = self.msg_types(from_chat, show=False)
-        fig = make_subplots(rows=1, cols=2, specs=[[{"type": "pie"}]*2])
+        fig = make_subplots(rows=1, cols=2, specs=[[{"type": "pie"}] * 2])
         fig.add_trace(msg_types_graph, row=1, col=1)
         fig.add_trace(participants_graph, row=1, col=2)
         fig.update_layout(title_text=f"Stats for chat: {chat}")
@@ -332,7 +339,8 @@ class ChatStat:
             Bar plot of data
         """
         monthly_df = time_indexed.groupby("month").count()
-        monthly_df = monthly_df.reindex(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
+        monthly_df = monthly_df.reindex(
+            ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
         monthly_graph = go.Bar(x=monthly_df.index, y=monthly_df.msg)
         return monthly_graph
 
@@ -374,7 +382,7 @@ class ChatStat:
         daily_df = daily_df[:top]
         daily_graph = go.Bar(x=daily_df.index.strftime("%Y-%b-%d"), y=daily_df.msg)
         return daily_graph
-    
+
     def weekday_graph(self, time_indexed):
         """
         generates an aggregated message count by minute
@@ -422,9 +430,9 @@ class ChatStat:
         daily_graph = self.daily_graph(time_indexed)
         weekday_graph = self.weekday_graph(time_indexed)
 
-
         when = make_subplots(rows=3, cols=2, specs=[[{"type": "bar"}] * 2] * 3,
-                             subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute', "Single Day", "Day of Week"])
+                             subplot_titles=['Yearly', 'Monthly', 'Hourly', 'Minute-by-Minute', "Single Day",
+                                             "Day of Week"])
         when.add_trace(yearly_graph, row=1, col=1)
         when.add_trace(monthly_graph, row=1, col=2)
         when.add_trace(hourly_graph, row=2, col=1)
@@ -514,13 +522,14 @@ class ChatStat:
 
         """
         start = int(omit_first)
-        counts = self.msg_df.groupby(["sender", "thread_path"]).size().reset_index().groupby("sender").count().sort_values('thread_path', ascending=False)
+        counts = self.msg_df.groupby(["sender", "thread_path"]).size().reset_index().groupby(
+            "sender").count().sort_values('thread_path', ascending=False)
         counts = counts[start:top]
         graph = go.Bar(x=counts.index, y=counts.thread_path)
         fig = go.Figure(graph)
         fig.update_layout(title_text=f"Number of chats by person (Top {top})")
         return fig, graph
-    
+
     def chat_window(self, thread, start, end):
         """
         Generates a JSON file for a chat between two timestamps

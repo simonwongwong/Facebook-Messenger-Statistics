@@ -1,4 +1,4 @@
-"""
+F"""
 Generates a report with all-time stats
 """
 import sys

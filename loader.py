@@ -69,7 +69,7 @@ def parse_from_json(path=None):
         for msg in current_chat['messages']:
             ts = msg.get('timestamp_ms', 0) // 1000
             body = msg.get('content', None)
-            sender = msg.get('sender_name', None)
+            sender = str(msg.get('sender_name', None)).encode('latin-1').decode('utf-8')
             msg_type = msg.get('type', None)
             sticker = msg.get('sticker', None)
             photos = msg.get('photos', None)
@@ -80,6 +80,8 @@ def parse_from_json(path=None):
 
     chat_df = pd.DataFrame(chat_data, columns=chat_cols)
     chat_df.set_index('thread_path', inplace=True)
+    chat_df['participants'] = chat_df['participants'].apply(lambda x: x[0].encode('latin-1').decode('utf-8'))
+
     msg_df = pd.DataFrame(message_data, columns=msg_cols)
     msg_df['timestamp'] = msg_df['timestamp'].apply(datetime.fromtimestamp)
 
@@ -94,6 +96,8 @@ def load_from_csv(path=None):
 
     chat_df = pd.read_csv(chat_file, converters={
                           "participants": eval}, index_col='thread_path')
+    chat_df['participants'] = chat_df['participants'].apply(lambda x: x[0].encode('latin-1').decode('utf-8'))
+
     msg_df = pd.read_csv(msg_file, index_col=0)
     msg_df['timestamp'] = pd.to_datetime(msg_df['timestamp'])
 
